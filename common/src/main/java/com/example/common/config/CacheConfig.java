@@ -79,9 +79,7 @@ public class CacheConfig {
      */
     @Bean("multiLevelCacheManager")
     public CacheManager multiLevelCacheManager(CacheManager caffeineCacheManager, 
-                                             CacheManager redisCacheManager) {
-        // 这里可以实现多级缓存的逻辑
-        // 为了简化，这里直接返回Caffeine缓存管理器
-        return caffeineCacheManager;
+                                             RedisTemplate<String, Object> redisTemplate) {
+        return new MultiLevelCacheManager(caffeineCacheManager, redisTemplate);
     }
 }
