@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Component
-public class AreaFreightUpdateCommandExecutorV2 {
+public class AreaFreightUpdateCommandExecutorV2_Fixed {
 
     @Resource
     private AreaFreightRepository areaFreightRepository;
@@ -64,6 +64,7 @@ public class AreaFreightUpdateCommandExecutorV2 {
                 areaFreightViews = updateFuture.get();
             } catch (InterruptedException | ExecutionException e) {
                 log.error("Failed to update old data", e);
+                Thread.currentThread().interrupt();
                 throw new RuntimeException("Failed to update old data", e);
             }
             
@@ -122,6 +123,7 @@ public class AreaFreightUpdateCommandExecutorV2 {
             parentToChildrenCache.putAll(parentCacheFuture.get());
         } catch (InterruptedException | ExecutionException e) {
             log.error("Failed to preload category data", e);
+            Thread.currentThread().interrupt();
             throw new RuntimeException("Failed to preload category data", e);
         }
     }
@@ -147,7 +149,7 @@ public class AreaFreightUpdateCommandExecutorV2 {
     /**
      * 并行预计算已存在的三级类目 key
      */
-    private Set<String> precomputeExistingLeafCategoryKeysParallel(List<AreaFreightView> areaFreightViews) {
+    private Set<String> precomputeExistingLeafKeysParallel(List<AreaFreightView> areaFreightViews) {
         return areaFreightViews.parallelStream()
                 .filter(view -> {
                     CategoryDTO category = categoryCache.get(view.getCategoryId());
@@ -301,6 +303,7 @@ public class AreaFreightUpdateCommandExecutorV2 {
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
             } catch (InterruptedException | ExecutionException e) {
                 log.error("Failed to save data in parallel", e);
+                Thread.currentThread().interrupt();
                 throw new RuntimeException("Failed to save data in parallel", e);
             }
         } finally {
